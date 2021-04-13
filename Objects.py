@@ -15,8 +15,8 @@ class Pituxos:
     def cria_cache(self):
         while True:
             try:
-                custo = round(float(input('\nQual o custo padrão de um rolo de tecido?\nValor: R$ ').replace(',','.')))
-                metragem = int(input('\nQual o tamanho padrão de um rolo de tecido? (Em metros)\nTamanho: '))
+                custo = round(float(input('\nQual o custo do novelo?\nValor: R$ ').replace(',','.')))
+                metragem = int(input('\nQual o tamanho do novelo? (Em metros)\nTamanho: '))
                 valor_hora = float(input('\nQual o valor da sua hora de trabalho?\nTamanho: ').replace(',', '.'))
                 cache = {'Custo': custo, "Metragem": metragem, "Hora": valor_hora}
                 self.escreve_json(cache)
@@ -45,7 +45,7 @@ class Pituxos:
                 projeto = {}
                 for i in range(qtde):
                     cor = input(f'\nQual a {i+1}ª cor utilizada?\nCor: ').title()
-                    fio = float(input(f'\nQuanto da cor {cor} foi utilizada? (Em centímetros)\nValor: ').replace(',', '.'))
+                    fio = float(input(f'\nQuanto da cor {cor} foi utilizada? (Em centímetros)\nValor: ').replace('.', '').replace(',', '.'))/100
                     pituxo = lambda fio: (retorno['Custo']*fio)/retorno['Metragem']
                     projeto[cor] = round(pituxo(fio), 2)
                 homem_hora = retorno['Hora'] * tempo
