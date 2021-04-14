@@ -45,7 +45,11 @@ class Pituxos:
                 projeto = {}
                 for i in range(qtde):
                     cor = input(f'\nQual a {i+1}ª cor utilizada?\nCor: ').title()
-                    fio = float(input(f'\nQuanto da cor {cor} foi utilizada? (Em centímetros)\nValor: ').replace('.', '').replace(',', '.'))/100
+                    comprimento = input('\nQual o tipo do comprimento? (M/CM)\nMetragem: ').upper()
+                    if comprimento == 'M':
+                        fio = float(input(f'\nQuanto da cor {cor} foi utilizada? (Em metros)\nValor: ').replace('.', '').replace(',', '.'))
+                    elif comprimento == 'CM':
+                        fio = float(input(f'\nQuanto da cor {cor} foi utilizada? (Em centímetros)\nValor: ').replace('.', '').replace(',', '.'))/100
                     pituxo = lambda fio: (retorno['Custo']*fio)/retorno['Metragem']
                     projeto[cor] = round(pituxo(fio), 2)
                 homem_hora = retorno['Hora'] * tempo
