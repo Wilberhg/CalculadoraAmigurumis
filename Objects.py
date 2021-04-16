@@ -1,9 +1,18 @@
-import os.path, json
+import os.path, json, requests
 
 class Pituxos:
     def __init__(self):
         if os.path.isfile('dados.json'):
             print('\nCarregando os módulos...')
+            retorno = self.ler_cache()
+            try:
+                inflacao = self.coleta_inflacao()
+            except:
+                if not retorno['Inflacao']:
+                    inflacao = 0.0
+            retorno['Inflacao'] = inflacao
+            retorno['Inflacionado'] = self.calculadora_inflacao(retorno['Custo'], inflacao)
+            self.escreve_json(retorno)
         else:
             self.cria_cache()
 
@@ -18,7 +27,11 @@ class Pituxos:
                 custo = round(float(input('\nQual o custo do novelo?\nValor: R$ ').replace(',','.')))
                 metragem = int(input('\nQual o tamanho do novelo? (Em metros)\nTamanho: '))
                 valor_hora = float(input('\nQual o valor da sua hora de trabalho?\nTamanho: ').replace(',', '.'))
-                cache = {'Custo': custo, "Metragem": metragem, "Hora": valor_hora}
+                try:
+                    inflacao = self.coleta_inflacao()
+                except:
+                    inflacao = 0.0
+                cache = {'Custo': custo, "Metragem": metragem, "Hora": valor_hora, "Inflacao": inflacao, 'Inflacionado': round((custo * inflacao) + custo, 2)}
                 self.escreve_json(cache)
                 break
             except ValueError:
@@ -31,9 +44,6 @@ class Pituxos:
         valores = json.load(arqv)
         arqv.close()
         return valores
-
-    def calcula_pituxo(self, tamanho_base, valor_base, tamanho_usado, valor_usado):
-        pass
 
     def calculadora(self):
         while True:
@@ -50,7 +60,9 @@ class Pituxos:
                         fio = float(input(f'\nQuanto da cor {cor} foi utilizada? (Em metros)\nValor: ').replace('.', '').replace(',', '.'))
                     elif comprimento == 'CM':
                         fio = float(input(f'\nQuanto da cor {cor} foi utilizada? (Em centímetros)\nValor: ').replace('.', '').replace(',', '.'))/100
-                    pituxo = lambda fio: (retorno['Custo']*fio)/retorno['Metragem']
+                    else:
+                        raise ValueError('O valor inserido está errado')
+                    pituxo = lambda fio: (retorno['Inflacionado']*fio)/retorno['Metragem']
                     projeto[cor] = round(pituxo(fio), 2)
                 homem_hora = retorno['Hora'] * tempo
                 print(f'\nO valor do pituxo é R$ {round((sum(projeto.values())*2) + homem_hora, 2)}')
@@ -59,7 +71,7 @@ class Pituxos:
                     break
                 print(' '*500)
             except ValueError:
-                print('Insira um número válido.\n\nRestartando o módulo...\n')
+                print('\nInsira um valor válido.\n\nRestartando o módulo...\n')
                 print(' '*500)
                 continue
         return
@@ -69,6 +81,7 @@ class Pituxos:
         custo = round(float(input('\nQual o NOVO custo de um rolo de tecido?\nValor: R$ ').replace(',','.')))
         retorno = self.ler_cache()
         retorno['Custo'] = custo
+        retorno['Inflacionado'] = self.calculadora_inflacao(retorno['Custo'], retorno['Inflacao'])
         self.escreve_json(retorno)
     
     def altera_valor_hora(self):
@@ -83,3 +96,10 @@ class Pituxos:
         retorno = self.ler_cache()
         for i in retorno.items():
             print(f'O valor do(a) {i[0]} é {i[1]}')
+
+    def coleta_inflacao(self):
+        inflacao = requests.get('https://www.bcb.gov.br/api/servico/sitebcb/indicadorinflacao')
+        return inflacao.json()['conteudo'][0]['taxaInflacao']/100
+    
+    def calculadora_inflacao(self, custo, inflacao):
+        return round((custo * inflacao) + custo, 2)
